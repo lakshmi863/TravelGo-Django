@@ -98,7 +98,7 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 # --------------------------------------------------------------------------
 
 # IMPORTANT: I REMOVED CORS_REPLACE_HTTPS_REFERER TO FIX THE E013 ERROR.
-CORS_ALLOW_ALL_ORIGINS = False
+CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
     "http://127.0.0.1:3000",
@@ -125,3 +125,4 @@ EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'lalit.lakshmipathi@gmail.com'
 EMAIL_HOST_PASSWORD = 'uydn mijd uktm qsdh'
+APPEND_SLASH = True

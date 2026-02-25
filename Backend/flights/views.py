@@ -30,17 +30,14 @@ class BookingViewSet(viewsets.ModelViewSet):
         return queryset
 
     def create(self, request, *args, **kwargs):
-        """Step 1 & 2 Combined: Instant Booking & Data Squaring"""
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         
-        # 1. Generate IDs immediately for an 'Instant Square'
         local_order_id = f"ORDER_LOC_{uuid.uuid4().hex[:10].upper()}"
         local_payment_id = f"PAY_LOC_{uuid.uuid4().hex[:12].upper()}"
 
         try:
             with transaction.atomic():
-                # 2. Save directly to database with BOOKED status
                 booking = serializer.save(
                     status='BOOKED', 
                     razorpay_order_id=local_order_id,
@@ -48,27 +45,23 @@ class BookingViewSet(viewsets.ModelViewSet):
                     razorpay_signature="INSTANT_SQUARE_COMPLETED"
                 )
 
-                # 3. Trigger Email Confirmation immediately
                 try:
                     self.send_booking_confirmation(booking)
                 except Exception as email_err:
-                    print(f"📧 SMTP LOG: Email failed but booking is saved: {email_err}")
+                    print(f"📧 EMAIL LOG ERROR: {email_err}")
 
-            # 4. Return ALL data including IDs to show in your React Modal
             return Response({
                 "message": "Booking Success!",
                 "booking_id": booking.id,
-                "transaction_id": local_payment_id, # This is the unique ref
+                "transaction_id": local_payment_id,
                 "amount": booking.total_price,
                 "passenger_name": booking.passenger_name,
                 "status": booking.status
             }, status=status.HTTP_201_CREATED)
 
         except Exception as e:
-            return Response({"error": f"Instant Booking Failed: {str(e)}"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
-    # Note: verify_payment action is no longer needed if you use Instant Booking,
-    # but we leave it here so your existing React code doesn't crash if it calls it.
     @action(detail=True, methods=['post'])
     def verify_payment(self, request, pk=None):
         booking = self.get_object()
@@ -123,18 +116,24 @@ class BookingViewSet(viewsets.ModelViewSet):
             )
             email.attach_alternative(html_content, "text/html")
 
+            # SAFETY LOGO LOGIC
             logo_path = os.path.join(settings.BASE_DIR, 'flights', 'TravelGo_logo.png')
             if os.path.exists(logo_path):
-                with open(logo_path, 'rb') as f:
-                    logo = MIMEImage(f.read())
-                    logo.add_header('Content-ID', '<logo_image>')
-                    logo.add_header('Content-Disposition', 'inline', filename='TravelGo_logo.png')
-                    email.attach(logo)
-            
+                try:
+                    with open(logo_path, 'rb') as f:
+                        logo = MIMEImage(f.read())
+                        logo.add_header('Content-ID', '<logo_image>')
+                        logo.add_header('Content-Disposition', 'inline', filename='TravelGo_logo.png')
+                        email.attach(logo)
+                except Exception as logo_err:
+                    print(f"⚠️ Attachment failed: {logo_err}")
+
+            # Send is inside the MAIN TRY BLOCK
             email.send(fail_silently=False)
-            print(f"✅ Email Sent to {recipient_email}")
-        except Exception as e:
-            print(f"📧 SMTP Error (Non-Fatal): {e}")
+            print(f"✅ Success! Email sent to {recipient_email}")
+
+        except Exception as fatal_e:
+            print(f"❌ FATAL EMAIL CRASH PREVENTED: {fatal_e}")
 
 class FoodOrderViewSet(viewsets.ModelViewSet):
     queryset = FoodOrder.objects.all()
