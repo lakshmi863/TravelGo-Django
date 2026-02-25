@@ -26,12 +26,12 @@ SECRET_KEY = 'django-insecure-a4yv8i(6_!*24s9rpnai(m=l-lb4b06)m7byg8fx%nh9(t%e=#
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['travelgo-django.onrender.com', 'localhost', '127.0.0.1']
 
 
 # Application definition
 
-INSTALLED_APPS = [
+INSTALLED_APPS = [  
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -45,16 +45,17 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
-    'corsheaders.middleware.CorsMiddleware',
+    'corsheaders.middleware.CorsMiddleware',      # 1. First
     'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware', # Place this near the top
+    'whitenoise.middleware.WhiteNoiseMiddleware', # 2. Static files
     'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.common.CommonMiddleware',
+    'django.middleware.common.CommonMiddleware',  # 3. After Cors
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+
 ROOT_URLCONF = 'travelgo_django.urls'
 
 TEMPLATES = [
@@ -135,7 +136,8 @@ CORS_ALLOWED_ORIGINS = [
 ]
 
 CORS_ALLOW_CREDENTIALS = True
-ALLOWED_HOSTS = ['travelgo-django.onrender.com', 'localhost', '127.0.0.1']
+
+
 
 # Also add this for Django 4.0+ to fix the Admin Login
 CSRF_TRUSTED_ORIGINS = [
@@ -144,9 +146,8 @@ CSRF_TRUSTED_ORIGINS = [
 ]
 
 
-
-CORS_ALLOW_ALL_ORIGINS = False
 CORS_REPLACE_HTTPS_REFERER = True
+
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 # For extra safety, allow Whitenoise to compress and cache files
@@ -158,3 +159,4 @@ EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'lalit.lakshmipathi@gmail.com'
 EMAIL_HOST_PASSWORD = 'uydn mijd uktm qsdh'
+
