@@ -138,7 +138,10 @@ CORS_ALLOW_CREDENTIALS = True
 ALLOWED_HOSTS = ['travelgo-django.onrender.com', 'localhost', '127.0.0.1']
 
 # Also add this for Django 4.0+ to fix the Admin Login
-CSRF_TRUSTED_ORIGINS = ['https://travelgo-django.onrender.com']
+CSRF_TRUSTED_ORIGINS = [
+    'https://travelgo-django.onrender.com',
+    'https://travelgo-front.onrender.com'
+]
 
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
