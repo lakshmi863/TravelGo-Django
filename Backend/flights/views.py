@@ -137,30 +137,36 @@ class BookingViewSet(viewsets.ModelViewSet):
             recipient_email=booking.passenger_email
         )
 
-    def send_professional_email(self, subject, context, template, recipient_email):
-        try:
-            html_content = render_to_string(template, context)
-            text_content = strip_tags(html_content)
+   def send_professional_email(self, subject, context, template, recipient_email):
+    try:
+        html_content = render_to_string(template, context)
+        text_content = strip_tags(html_content)
 
-            email = EmailMultiAlternatives(
-                subject=subject,
-                body=text_content,
-                from_email='TravelGo Reservations <lalit.lakshmipathi@gmail.com>',
-                to=[recipient_email],
-            )
-            email.attach_alternative(html_content, "text/html")
+        email = EmailMultiAlternatives(
+            subject=subject,
+            body=text_content,
+            from_email='TravelGo Reservations <lalit.lakshmipathi@gmail.com>',
+            to=[recipient_email],
+        )
+        email.attach_alternative(html_content, "text/html")
 
-            logo_path = os.path.join(settings.BASE_DIR, 'flights', 'TravelGo_logo.png')
-            if os.path.exists(logo_path):
-                with open(logo_path, 'rb') as f:
-                    logo_data = f.read()
-                    logo = MIMEImage(logo_data)
-                    logo.add_header('Content-ID', '<logo_image>')
-                    logo.add_header('Content-Disposition', 'inline', filename='TravelGo_logo.png')
-                    email.attach(logo)
-            email.send()
-        except Exception as e:
-            print(f"Email Error (Backend): {e}")
+        # FIX: Safety for the logo path in Production
+        logo_path = os.path.join(settings.BASE_DIR, 'flights', 'TravelGo_logo.png')
+        if os.path.exists(logo_path):
+            with open(logo_path, 'rb') as f:
+                logo_data = f.read()
+                logo = MIMEImage(logo_data)
+                logo.add_header('Content-ID', '<logo_image>')
+                logo.add_header('Content-Disposition', 'inline', filename='TravelGo_logo.png')
+                email.attach(logo)
+        
+        # This can fail on Render if SMTP is slow; we wrap it in a try
+        email.send(fail_silently=False) 
+        print(f"✅ Email successfully sent to {recipient_email}")
+        
+    except Exception as e:
+        # LOG THE ERROR BUT DON'T CRASH THE 500
+        print(f"📧 EMAIL FAILED but booking is still valid: {str(e)}")
 
 class FoodOrderViewSet(viewsets.ModelViewSet):
     queryset = FoodOrder.objects.all()
