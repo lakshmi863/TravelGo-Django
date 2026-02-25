@@ -30,48 +30,49 @@ class BookingViewSet(viewsets.ModelViewSet):
         return queryset
 
     def create(self, request, *args, **kwargs):
+        """Step 1 & 2 Combined: Instant Booking & Data Squaring"""
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        local_order_id = f"ORDER_LOC_{uuid.uuid4().hex[:10].upper()}"
-        try:
-            booking = serializer.save(status='PENDING', razorpay_order_id=local_order_id)
-            return Response({
-                "booking_id": booking.id,
-                "mock_order_id": local_order_id,
-                "amount": booking.total_price,
-                "passenger_name": booking.passenger_name
-            }, status=status.HTTP_201_CREATED)
-        except Exception as e:
-            return Response({"error": f"Database failed: {str(e)}"}, status=status.HTTP_400_BAD_REQUEST)
-
-    @action(detail=True, methods=['post'])
-    def verify_payment(self, request, pk=None):
-        booking = self.get_object()
-        local_payment_id = f"PAY_LOC_{uuid.uuid4().hex[:12].upper()}"
         
+        # 1. Generate IDs immediately for an 'Instant Square'
+        local_order_id = f"ORDER_LOC_{uuid.uuid4().hex[:10].upper()}"
+        local_payment_id = f"PAY_LOC_{uuid.uuid4().hex[:12].upper()}"
+
         try:
             with transaction.atomic():
-                booking.status = 'BOOKED'
-                booking.razorpay_payment_id = local_payment_id
-                booking.razorpay_signature = "SQUARING_SIGNED_OFF"
-                booking.save()
+                # 2. Save directly to database with BOOKED status
+                booking = serializer.save(
+                    status='BOOKED', 
+                    razorpay_order_id=local_order_id,
+                    razorpay_payment_id=local_payment_id,
+                    razorpay_signature="INSTANT_SQUARE_COMPLETED"
+                )
 
-                # Step 3: Trigger Email. 
-                # We put it in a sub-try so if SMTP fails, the 200 Success still sends!
+                # 3. Trigger Email Confirmation immediately
                 try:
                     self.send_booking_confirmation(booking)
                 except Exception as email_err:
-                    print(f"📧 SMTP LOG: Email failed but booking kept: {email_err}")
+                    print(f"📧 SMTP LOG: Email failed but booking is saved: {email_err}")
 
+            # 4. Return ALL data including IDs to show in your React Modal
             return Response({
-                "message": "Payment verified locally & Squared!",
-                "transaction_id": local_payment_id
-            }, status=status.HTTP_200_OK)
+                "message": "Booking Success!",
+                "booking_id": booking.id,
+                "transaction_id": local_payment_id, # This is the unique ref
+                "amount": booking.total_price,
+                "passenger_name": booking.passenger_name,
+                "status": booking.status
+            }, status=status.HTTP_201_CREATED)
 
         except Exception as e:
-            booking.status = 'FAILED'
-            booking.save()
-            return Response({"message": f"Local Squaring Failed: {str(e)}"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"error": f"Instant Booking Failed: {str(e)}"}, status=status.HTTP_400_BAD_REQUEST)
+
+    # Note: verify_payment action is no longer needed if you use Instant Booking,
+    # but we leave it here so your existing React code doesn't crash if it calls it.
+    @action(detail=True, methods=['post'])
+    def verify_payment(self, request, pk=None):
+        booking = self.get_object()
+        return Response({"message": "Already Squared", "transaction_id": booking.razorpay_payment_id}, status=status.HTTP_200_OK)
 
     @action(detail=True, methods=['post'])
     def cancel_ticket(self, request, pk=None):
@@ -122,7 +123,6 @@ class BookingViewSet(viewsets.ModelViewSet):
             )
             email.attach_alternative(html_content, "text/html")
 
-            # Production Safe Logo Path
             logo_path = os.path.join(settings.BASE_DIR, 'flights', 'TravelGo_logo.png')
             if os.path.exists(logo_path):
                 with open(logo_path, 'rb') as f:
