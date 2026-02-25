@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body { margin: 0; padding: 0; background-color: #fff1f1; font-family: 'Segoe UI', Arial, sans-serif; }
+        .container { max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; overflow: hidden; border: 1px solid #fecaca; }
+        .header { background-color: #dc2626; color: #ffffff; padding: 25px; text-align: center; }
+        .content { padding: 35px; color: #2d3748; }
+        .refund-badge { background-color: #ecfdf5; color: #059669; padding: 10px; border-radius: 6px; font-weight: 800; text-align: center; margin: 20px 0; border: 1px solid #10b981; }
+        .footer { background-color: #003580; color: #ffffff; padding: 20px; text-align: center; font-size: 11px; }
+    </style>
+</head>
+<body>
+    <div style="padding: 20px;">
+        <div class="container">
+            <div class="header">
+                <h1 style="margin:0; font-size: 20px; text-transform: uppercase;">Booking Cancelled</h1>
+            </div>
+            <div class="content">
+                <h2>Hello, {{ passenger_name }}</h2>
+                <p>We’re writing to confirm that your booking for <b>{{ airline }}</b> (Seat: {{ seat_number }}) from <b>{{ origin }}</b> to <b>{{ destination }}</b> has been successfully cancelled.</p>
+                
+                <div class="refund-badge">
+                    Refund Status: {{ refund_status }}
+                </div>
+
+                <p style="font-size: 14px; color: #4b5563;">Your refund will be processed back to your original payment method within 5-7 business days.</p>
+                
+                <p style="margin-top: 30px; border-top: 1px solid #eee; padding-top: 20px; font-size: 13px;">
+                    Thank you for choosing TravelGo. We hope to fly with you again soon.
+                </p>
+            </div>
+            <div class="footer">
+                <b>TRAVELGO AVIATION</b><br>
+                Hyderabad | New York | London | Dubai
+            </div>
+        </div>
+    </div>
+</body>
+</html>

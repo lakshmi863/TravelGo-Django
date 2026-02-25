@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Booking Confirmation</title>
+    <style>
+        body { margin: 0; padding: 0; background-color: #f4f7f9; font-family: 'Segoe UI', Arial, sans-serif; }
+        .container { max-width: 600px; margin: 0 auto; background-color: #ffffff; overflow: hidden; border-radius: 12px; border: 1px solid #e2e8f0; }
+        
+        /* HERO SECTION: Background image with Logo positioned top-left */
+        .hero { 
+            background-image: url('https://img.freepik.com/premium-photo/flying-passenger-airplane-with-travel-text-speech-bubble_9083-24208.jpg'); 
+            background-size: cover; 
+            background-position: center; 
+            height: 180px; 
+            width: 100%;
+            position: relative;
+        }
+        
+        .logo-box {
+            padding: 15px; /* Moves logo away from exact corner */
+            text-align: left;
+        }
+        
+        .logo-img { 
+            width: 105px; 
+            height: 95px; 
+            display: block;
+        }
+
+        .content { padding: 35px; color: #2d3748; }
+        .greeting { color: #003580; font-size: 24px; font-weight: 800; margin-bottom: 5px; }
+        .sub-text { color: #718096; font-size: 14px; margin-bottom: 25px; }
+
+        /* TICKET AREA */
+        .ticket-card {
+            border: 2px solid #edf2f7;
+            border-radius: 12px;
+            padding: 0;
+            margin-bottom: 25px;
+            background-color: #ffffff;
+        }
+        .ticket-header { background-color: #f8fafc; padding: 12px 20px; border-bottom: 1px dashed #cbd5e1; }
+        .ticket-row { padding: 15px 20px; border-bottom: 1px solid #f1f5f9; }
+        .ticket-row:last-child { border-bottom: none; }
+        .label { font-size: 11px; font-weight: bold; color: #a0aec0; text-transform: uppercase; letter-spacing: 1px; }
+        .value { font-size: 16px; font-weight: bold; color: #1a202c; margin-top: 2px; }
+
+        /* NEW: CANCELLATION POLICY BOX */
+        .policy-box {
+            background-color: #fff9eb;
+            border: 1px solid #fde68a;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+        }
+        .policy-title { color: #92400e; font-size: 13px; font-weight: bold; text-transform: uppercase; margin-bottom: 8px; }
+        .policy-list { margin: 0; padding-left: 20px; font-size: 12px; color: #92400e; line-height: 1.6; }
+
+        .btn-center { text-align: center; margin: 30px 0; }
+        .btn { 
+            background-color: #f3a614; 
+            color: #ffffff !important; 
+            padding: 14px 40px; 
+            text-decoration: none; 
+            font-weight: bold; 
+            border-radius: 8px; 
+            display: inline-block;
+            font-size: 15px;
+        }
+
+        /* COMPANY INFO & ACHIEVEMENTS */
+        .company-info { border-top: 1px solid #e2e8f0; padding-top: 25px; }
+        .company-title { color: #003580; font-size: 16px; font-weight: bold; margin-bottom: 8px; }
+        .company-desc { color: #4a5568; font-size: 13px; line-height: 1.6; margin-bottom: 15px; }
+        
+        .achievement-badge { 
+            background: #eef2ff; color: #003580; 
+            padding: 5px 12px; border-radius: 15px; 
+            font-size: 11px; font-weight: bold; 
+            margin-right: 5px; display: inline-block;
+            border: 1px solid #c3dafe;
+        }
+
+        .footer { background-color: #003580; color: #ffffff; padding: 30px; text-align: center; font-size: 11px; line-height: 1.8; }
+    </style>
+</head>
+<body>
+    <div style="background-color: #f4f7f9; padding: 20px;">
+        <div class="container">
+            <!-- Hero Header with Image and CID Logo at Top-Left -->
+            <div class="hero">
+                <div class="logo-box">
+                    <img src="cid:logo_image" class="logo-img" alt="TravelGo Logo">
+                </div>
+            </div>
+
+            <div class="content">
+                <div class="greeting">Ticket Confirmed, {{ passenger_name }}!</div>
+                <p class="sub-text">Pack your bags! Your flight reservation with TravelGo is successful. Please find your travel details below.</p>
+
+                <div class="ticket-card">
+                    <div class="ticket-header"><span class="label">Boarding Pass Detail</span></div>
+                    <table width="100%" cellspacing="0" cellpadding="0">
+                        <tr>
+                            <td class="ticket-row" width="50%" style="border-right: 1px solid #f1f5f9;">
+                                <div class="label">Airline</div>
+                                <div class="value">{{ airline }}</div>
+                            </td>
+                            <td class="ticket-row" width="50%">
+                                <div class="label">Seat Number</div>
+                                <div class="value" style="color: #f3a614;">{{ seat_number }}</div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="ticket-row" colspan="2">
+                                <div class="label">Route & Schedule</div>
+                                <div class="value">{{ origin }} &rarr; {{ destination }}</div>
+                                <div style="font-size: 13px; color: #4a5568; margin-top: 5px;">Departure: {{ departure_time }}</div>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+
+                <!-- Cancellation Policy Alert -->
+                <div class="policy-box">
+                    <div class="policy-title">Cancellation Policy</div>
+                    <ul class="policy-list">
+                        <li><strong>Full Refund:</strong> If cancelled within 24 hours of booking.</li>
+                        <li><strong>Standard Cancellation:</strong> Permitted up to 4 hours before departure.</li>
+                        <li><strong>Non-Refundable:</strong> For cancellations made within 4 hours of the flight.</li>
+                    </ul>
+                </div>
+
+                <div class="btn-center">
+                    <a href="http://localhost:3000" class="btn">MANAGE YOUR BOOKING</a>
+                </div>
+
+                <!-- Company Branding -->
+                <div class="company-info">
+                    <div class="company-title">Why choose TravelGo?</div>
+                    <p class="company-desc">
+                        <b>TravelGo</b> is a premier digital travel partner dedicated to making global exploration seamless and affordable. 
+                        We bridge the gap between world-class airlines and modern travelers, ensuring your safety and comfort is always our #1 priority.
+                    </p>
+                    
+                    <div>
+                        <span class="achievement-badge">★ Top Rated Agency 2024</span>
+                        <span class="achievement-badge">✓ 1M+ Happy Travelers</span>
+                        <span class="achievement-badge">🏆 Best UI Travel Award</span>
+                    </div>
+                </div>
+
+                <div style="text-align: center; color: #a0aec0; font-size: 11px; margin-top: 40px;">
+                    Booking Ref: {{ device_id }} | Transaction Location: {{ location }} <br>
+                    IP Verification Enabled for Security.
+                </div>
+            </div>
+
+            <div class="footer">
+                <b>TRAVELGO AVIATION GROUP</b><br>
+                Connecting Skies. Connecting Souls. <br>
+                © 2026 All Rights Reserved.
+            </div>
+        </div>
+    </div>
+</body>
+</html>
