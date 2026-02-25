@@ -138,6 +138,11 @@ CORS_ALLOWED_ORIGINS = [
 ]
 
 
+ALLOWED_HOSTS = ['travelgo-django.onrender.com', 'localhost', '127.0.0.1']
+
+# Also add this for Django 4.0+ to fix the Admin Login
+CSRF_TRUSTED_ORIGINS = ['https://travelgo-django.onrender.com']
+
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 # For extra safety, allow Whitenoise to compress and cache files
