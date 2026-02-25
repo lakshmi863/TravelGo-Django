@@ -46,19 +46,15 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware', # Place this near the top
     'django.contrib.sessions.middleware.SessionMiddleware',
-    'corsheaders.middleware.CorsMiddleware', 
+    'corsheaders.middleware.CorsMiddleware',  # THIS MUST BE ABOVE CommonMiddleware
     'django.middleware.common.CommonMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',
-      # ...
-    # 'flights.middleware.BookingValidationMiddleware', <--- Comment this out
-    # ...
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
-
 ROOT_URLCONF = 'travelgo_django.urls'
 
 TEMPLATES = [
@@ -131,14 +127,14 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
+CORS_ALLOW_ALL_ORIGINS = False
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
     "http://127.0.0.1:3000",
     "https://travelgo-front.onrender.com",
 ]
 
-
+CORS_ALLOW_CREDENTIALS = True
 ALLOWED_HOSTS = ['travelgo-django.onrender.com', 'localhost', '127.0.0.1']
 
 # Also add this for Django 4.0+ to fix the Admin Login
