@@ -12,6 +12,7 @@ DEBUG = os.environ.get('DEBUG', 'False') == 'True'
 
 # Allow all render subdomains and locals
 ALLOWED_HOSTS = ['travelgo-django.onrender.com', 'localhost', '127.0.0.1', '.onrender.com']
+DEBUG = True
 
 # Application definition
 INSTALLED_APPS = [
