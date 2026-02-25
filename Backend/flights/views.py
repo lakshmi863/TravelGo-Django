@@ -137,7 +137,9 @@ class BookingViewSet(viewsets.ModelViewSet):
             recipient_email=booking.passenger_email
         )
 
-   def send_professional_email(self, subject, context, template, recipient_email):
+   # Backend/flights/views.py
+
+def send_professional_email(self, subject, context, template, recipient_email):
     try:
         html_content = render_to_string(template, context)
         text_content = strip_tags(html_content)

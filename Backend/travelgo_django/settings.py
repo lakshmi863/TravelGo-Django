@@ -143,6 +143,10 @@ CSRF_TRUSTED_ORIGINS = [
     'https://travelgo-front.onrender.com'
 ]
 
+
+
+CORS_ALLOW_ALL_ORIGINS = False
+CORS_REPLACE_HTTPS_REFERER = True
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 # For extra safety, allow Whitenoise to compress and cache files
