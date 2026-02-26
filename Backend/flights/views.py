@@ -125,7 +125,7 @@ class BookingViewSet(viewsets.ModelViewSet):
             email = EmailMultiAlternatives(
                 subject=subject,
                 body=text_content,
-                from_email='TravelGo Reservations <lalit.lakshmipathi@gmail.com>',
+                from_email='lalit.lakshmipathi@gmail.com',
                 to=[recipient_email],
             )
             email.attach_alternative(html_content, "text/html")
