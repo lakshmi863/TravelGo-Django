@@ -20,11 +20,17 @@ from .models import Flight, Booking, FoodOrder
 from .serializers import FlightSerializer, BookingSerializer, FoodOrderSerializer
 
 # Initialize OpenRouter Client
-client = openai.OpenAI(
-    base_url="https://openrouter.ai/api/v1",
-    api_key=settings.OPENROUTER_API_KEY,
-)
-print(f"DEBUG: My API Key is: {settings.OPENROUTER_API_KEY}")
+api_key = getattr(settings, 'OPENROUTER_API_KEY', None)
+
+# 2. Initialize the client safely
+if api_key:
+    client = openai.OpenAI(
+        base_url="https://openrouter.ai/api/v1",
+        api_key=api_key,
+    )
+else:
+    client = None
+    print("⚠️ WARNING: OPENROUTER_API_KEY is not set. AI features will be disabled.")
 # ==============================================================================
 # 1. FLIGHT VIEWSET (Searchable)
 # ==============================================================================
@@ -274,13 +280,20 @@ class AIChatView(APIView):
     AI Agent that can query the database using 'Function Calling'.
     If a user asks for flights, the AI calls 'get_flights' to get real data.
     """
+
     def post(self, request):
+        # 1. Safety Check: If API key wasn't found during startup, return error early
+        if not client:
+            return Response({
+                "error": "AI service is currently unavailable due to configuration (Missing API Key)."
+            }, status=status.HTTP_503_SERVICE_UNAVAILABLE)
+
         user_message = request.data.get("message")
         if not user_message:
-            return Response({"error": "No message provided"}, status=400)
+            return Response({"error": "No message provided"}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
-            # 1. Define the Tools available to the AI
+            # 2. Define the Tools available to the AI (Function Calling)
             tools = [
                 {
                     "type": "function",
@@ -301,7 +314,7 @@ class AIChatView(APIView):
 
             messages = [{"role": "user", "content": user_message}]
 
-            # 2. Ask the AI if it needs a tool
+            # 3. First Request: Ask the AI if it needs to use a tool
             response = client.chat.completions.create(
                 model="openai/gpt-3.5-turbo", 
                 messages=messages,
@@ -312,18 +325,20 @@ class AIChatView(APIView):
             response_message = response.choices[0].message
             tool_calls = response_message.tool_calls
 
-            # 3. If AI calls the flight tool, query the actual database
+            # 4. Handle Tool Calls (Function Calling)
             if tool_calls:
                 for tool_call in tool_calls:
                     if tool_call.function.name == "get_flights":
+                        # Parse arguments from the AI
                         args = json.loads(tool_call.function.arguments)
                         
-                        # Perform the actual DB search
+                        # Perform the actual database search based on AI's arguments
                         flights = Flight.objects.filter(
-                            origin__icontains=args['origin'],
-                            destination__icontains=args['destination']
+                            origin__icontains=args.get('origin', ''),
+                            destination__icontains=args.get('destination', '')
                         )[:5]
 
+                        # Format the data for the AI to read
                         flight_results = [
                             {
                                 "id": f.id,
@@ -334,8 +349,9 @@ class AIChatView(APIView):
                             } for f in flights
                         ]
 
-                        # 4. Feed the DB data back to the AI for a natural response
-                        messages.append(response_message)
+                        # 5. Second Request: Feed the DB results back to the AI
+                        # This allows the AI to say "I found these flights for you..."
+                        messages.append(response_message) # Add the assistant's tool call
                         messages.append({
                             "role": "tool",
                             "tool_call_id": tool_call.id,
@@ -350,14 +366,14 @@ class AIChatView(APIView):
 
                         final_text = final_response.choices[0].message.content
 
-                        # 5. Return text AND structured data for React rendering
+                        # 6. Return the natural text AND the structured list for React rendering
                         return Response({
                             "reply": final_text,
                             "data_type": "flight_list",
                             "data": flight_results
                         }, status=status.HTTP_200_OK)
 
-            # If it's just a regular conversation
+            # 7. Standard Conversation (If no tool was needed)
             return Response({
                 "reply": response_message.content,
                 "data_type": "text",
@@ -365,4 +381,5 @@ class AIChatView(APIView):
             }, status=status.HTTP_200_OK)
 
         except Exception as e:
-            return Response({"error": str(e)}, status=500)
+            # In production, you should log the actual error e
+            return Response({"error": f"AI Processing Error: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
