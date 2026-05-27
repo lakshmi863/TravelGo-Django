@@ -1,0 +1,46 @@
+version: '3.8'
+
+services:
+  # 1. The Database (PostgreSQL)
+  db:
+    image: postgres:15
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    environment:
+      - POSTGRES_DB=travelgo_db
+      - POSTGRES_USER=travelgo_user
+      - POSTGRES_PASSWORD=travelgo_pass
+
+  # 2. The Cache (Redis)
+  redis:
+    image: redis:alpine
+
+  # 3. The Django Application (Web)
+  web:
+    build: ./Backend
+    # During development, we mount the volume so code changes sync instantly
+    volumes:
+      - ./Backend:/app
+    env_file:
+      - ./Backend/.env
+    environment:
+      - DATABASE_URL=postgres://travelgo_user:travelgo_pass@db:5432/travelgo_db
+      - REDIS_URL=redis://redis:6379/1
+      - DEBUG=False
+    depends_on:
+      - db
+      - redis
+
+  # 4. The Revers Proxy (Nginx)
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
+      - ./Backend/staticfiles:/app/staticfiles
+    depends_on:
+      - web
+
+volumes:
+  postgres_data:
