@@ -12,8 +12,13 @@ SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-a4yv8i(6_!*24s9rpnai(
 DEBUG = os.environ.get('DEBUG', 'False') == 'True'
 
 # Allow all render subdomains and locals
-ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", "localhost,127.0.0.1").split(",")
+ALLOWED_HOSTS = [
+    'travelgo-django-app.onrender.com', 
+    'localhost', 
+    '127.0.0.1'
+]
 DEBUG = True
+
 
 # Application definition
 INSTALLED_APPS = [
