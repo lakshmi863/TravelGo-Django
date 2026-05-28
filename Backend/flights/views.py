@@ -31,6 +31,8 @@ if api_key:
 else:
     client = None
     print("⚠️ WARNING: OPENROUTER_API_KEY is not set. AI features will be disabled.")
+
+
 # ==============================================================================
 # 1. FLIGHT VIEWSET (Searchable)
 # ==============================================================================
@@ -43,24 +45,28 @@ class FlightViewSet(viewsets.ModelViewSet):
     serializer_class = FlightSerializer
 
     def list(self, request, *args, **kwargs):
-        # 1. Create a unique key based on the URL parameters (e.g., origin=Mumbai&destination=Delhi)
+        # 1. Prepare Cache key
         params = request.query_params.urlencode()
         cache_key = f"flights_list_{params}"
+        
+        # 2. Try to get from Cache
+        try:
+            cached_data = cache.get(cache_key)
+            if cached_data is not None:
+                return Response(cached_data)
+        except Exception as e:
+            print(f"⚠️ Cache Get Error: {e}")
 
-        # 2. TRY to get the data from Redis/Cache first
-        cached_data = cache.get(cache_key)
-
-        # 3. If the data is in the cache, return it immediately (Fast!)
-        if cached_data is not None:
-            return Response(cached_data)
-
-        # 4. If NOT in cache, perform the actual Database Query
+        # 3. If NOT in cache, perform the actual Database Query
+        # This call must be INSIDE the list function
         response = super().list(request, *args, **kwargs)
-        
-        # 5. Save the results into the cache so the NEXT user gets it instantly
-        # We store 'response.data' (the actual list of flights)
-        cache.set(cache_key, response.data, 300) # Cache for 300 seconds (5 mins)
-        
+
+        # 4. Try to save the results into the cache
+        try:
+            cache.set(cache_key, response.data, 300)
+        except Exception as e:
+            print(f"⚠️ Cache Set Error: {e}")
+
         return response
 
     def get_queryset(self):
@@ -350,7 +356,6 @@ class AIChatView(APIView):
                         ]
 
                         # 5. Second Request: Feed the DB results back to the AI
-                        # This allows the AI to say "I found these flights for you..."
                         messages.append(response_message) # Add the assistant's tool call
                         messages.append({
                             "role": "tool",
